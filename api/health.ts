@@ -1,5 +1,6 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { IncomingMessage, ServerResponse } from 'http';
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
-  res.json({ status: 'ok', service: 'bricksy-test' });
+export default function handler(req: IncomingMessage, res: ServerResponse) {
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ status: 'ok', service: 'bricksy-test' }));
 }
