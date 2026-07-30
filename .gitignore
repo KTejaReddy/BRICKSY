@@ -6,7 +6,6 @@ data/
 *.err
 __pycache__/
 *.pyc
-package.json
 README.md
 uploads/photos/*
 uploads/videos/*

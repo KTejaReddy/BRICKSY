@@ -5,7 +5,16 @@ const dbClient = process.env.DB_CLIENT || 'sqlite3';
 
 let config: Knex.Config;
 
-if (dbClient === 'pg') {
+if (process.env.DATABASE_URL) {
+  config = {
+    client: 'pg',
+    connection: {
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+    },
+    pool: { min: 0, max: 10 },
+  };
+} else if (dbClient === 'pg') {
   config = {
     client: 'pg',
     connection: {

@@ -76,16 +76,16 @@ export default function EmployerApproval() {
                   </Badge>
                 </div>
 
-                {(entry.photos?.length > 0 || entry.videos?.length > 0) ? (
+                {(entry.photos || entry.videos) ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     {entry.photos?.length > 0 && (
                       <div>
                         <div className="flex items-center gap-1.5 text-sm text-white/50 mb-2">
-                          <Image className="w-4 h-4" /> Photos ({entry.photos.length})
+                          <Image className="w-4 h-4" /> Photos ({entry.photos.split(',').filter(Boolean).length})
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          {entry.photos.map((photo: string, pi: number) => (
-                            <img key={pi} src={`/uploads/photos/${photo}`} alt={`Progress ${pi+1}`}
+                          {entry.photos.split(',').filter(Boolean).map((photo: string, pi: number) => (
+                            <img key={pi} src={photo.startsWith('http') ? photo : `/uploads/photos/${photo}`} alt={`Progress ${pi+1}`}
                               className="w-20 h-20 object-cover rounded-xl border border-white/10" />
                           ))}
                         </div>
@@ -94,11 +94,11 @@ export default function EmployerApproval() {
                     {entry.videos?.length > 0 && (
                       <div>
                         <div className="flex items-center gap-1.5 text-sm text-white/50 mb-2">
-                          <Video className="w-4 h-4" /> Videos ({entry.videos.length})
+                          <Video className="w-4 h-4" /> Videos ({entry.videos.split(',').filter(Boolean).length})
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          {entry.videos.map((video: string, vi: number) => (
-                            <video key={vi} src={`/uploads/videos/${video}`} controls
+                          {entry.videos.split(',').filter(Boolean).map((video: string, vi: number) => (
+                            <video key={vi} src={video.startsWith('http') ? video : `/uploads/videos/${video}`} controls
                               className="w-36 h-20 object-cover rounded-xl border border-white/10" />
                           ))}
                         </div>

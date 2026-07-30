@@ -62,9 +62,6 @@ export async function seedData(db: Knex): Promise<void> {
     });
   }
 
-  // Assign worker to completed job
-  if (false) { } // no-op
-
   // Payments for completed job
   const completedJob = await db('jobs').where({ status: 'completed' }).first();
   if (completedJob) {
@@ -78,8 +75,8 @@ export async function seedData(db: Knex): Promise<void> {
     await db('progress').insert({
       job_id: completedJob.id,
       worker_id: completedJob.worker_id,
-      photos: 'sample1.jpg,sample2.jpg',
-      videos: 'demo1.mp4',
+      photos: '',
+      videos: '',
       upload_date: new Date().toISOString().split('T')[0],
       approved: true,
     });

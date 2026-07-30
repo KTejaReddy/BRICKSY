@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
 import dotenv from 'dotenv';
 import db from './database/knexfile';
 import { runMigrations } from './database/migrations';
@@ -23,8 +22,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
-app.use(express.json());
-app.use('/uploads', express.static(path.resolve(__dirname, '../../uploads')));
+app.use(express.json({ limit: '50mb' }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/workers', workerRoutes);
@@ -42,17 +40,21 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', service: 'bricksy-backend' });
 });
 
-async function start() {
+async function init() {
   try {
     await runMigrations(db);
     await seedData(db);
-    app.listen(PORT, () => {
-      console.log(`BRICKSY backend running on port ${PORT}`);
-    });
   } catch (err) {
-    console.error('Failed to start:', err);
-    process.exit(1);
+    console.error('Database init failed:', err);
   }
 }
 
-start();
+init();
+
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`BRICKSY backend running on port ${PORT}`);
+  });
+}
+
+export default app;

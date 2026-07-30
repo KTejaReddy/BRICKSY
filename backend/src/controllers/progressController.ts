@@ -1,6 +1,26 @@
 import { Response } from 'express';
+import { v2 as cloudinary, UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
 import db from '../database/knexfile';
 import { AuthRequest } from '../middleware/auth';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+function uploadBuffer(buffer: Buffer, folder: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: 'auto' },
+      (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
+        if (error) reject(error);
+        else resolve(result!.secure_url);
+      },
+    );
+    stream.end(buffer);
+  });
+}
 
 export async function uploadProgress(req: AuthRequest, res: Response) {
   try {
@@ -9,10 +29,34 @@ export async function uploadProgress(req: AuthRequest, res: Response) {
     if (!worker) {
       return res.status(400).json({ error: 'Worker profile not found' });
     }
-    const photos = ((req.files as any)?.photos || []).map((f: any) => f.filename);
-    const videos = ((req.files as any)?.videos || []).map((f: any) => f.filename);
+
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    const photos: string[] = [];
+    const videos: string[] = [];
+
+    if (files?.photos) {
+      for (const file of files.photos) {
+        if (process.env.CLOUDINARY_CLOUD_NAME) {
+          photos.push(await uploadBuffer(file.buffer, 'bricksy/photos'));
+        } else {
+          photos.push(file.originalname);
+        }
+      }
+    }
+
+    if (files?.videos) {
+      for (const file of files.videos) {
+        if (process.env.CLOUDINARY_CLOUD_NAME) {
+          videos.push(await uploadBuffer(file.buffer, 'bricksy/videos'));
+        } else {
+          videos.push(file.originalname);
+        }
+      }
+    }
+
     const [record] = await db('progress').insert({
-      job_id, worker_id: worker.id, photos, videos, upload_date: new Date().toISOString().split('T')[0],
+      job_id, worker_id: worker.id, photos: photos.join(','), videos: videos.join(','),
+      upload_date: new Date().toISOString().split('T')[0],
     }).returning('*');
     res.status(201).json(record);
   } catch (err: any) {
